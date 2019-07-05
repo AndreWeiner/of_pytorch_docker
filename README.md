@@ -1,9 +1,25 @@
 # Docker + OpenFOAM&reg; + PyTorch
 
+## Overview
+
 The Dockerfile in this repository creates an image with [OpenFOAM-plus](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
 - Ubuntu 18.04,
 - OpenFOAM-v1906, and
 - PyTorch 1.1 (without GPU support).
+
+## How to build the image
+
+To build the image yourself, copy this repository and navigate into the folder:
+```
+git clone https://github.com/AndreWeiner/of_pytorch_docker.git
+cd of_pytorch_docker
+```
+Then, download the OpenFOAM-v1906 sources from Sourceforge [(link)](https://sourceforge.net/projects/openfoamplus/files/v1906/OpenFOAM-v1906.tgz/download), and save the archive in the same folder. To build the image, run:
+```
+docker build -t your_dockerhub/of_pytorch:your_tag .
+```
+
+## Dockerfile details and practical tips
 
 OpenFOAM is installed system-wide in the */opt/OpenFOAM* folder. The only change compared to a regular compilation is the additional flag
 ```
