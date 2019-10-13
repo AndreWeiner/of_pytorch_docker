@@ -19,6 +19,6 @@ RUN sed -i '/projectDir=\"\$HOME\/OpenFOAM\/OpenFOAM-\$WM_PROJECT_VERSION\"/c\pr
 # get libtorch and set enironment variable with installation folder
 WORKDIR /opt
 RUN wget --no-check-certificate https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.2.0.zip && \
-    unzip libtorch-shared-with-deps-latest.zip && \
+    unzip libtorch-shared-with-deps-1.2.0.zip && \
     rm libtorch*.zip
 ENV TORCH_LIBRARIES /opt/libtorch
