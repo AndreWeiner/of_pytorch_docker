@@ -5,7 +5,7 @@
 The Dockerfile in this repository creates an image with [OpenFOAM-plus](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
 - Ubuntu 18.04,
 - OpenFOAM-v1906, and
-- PyTorch 1.1 (without GPU support).
+- PyTorch 1.2 (without GPU support).
 
 ## How to build the image
 
