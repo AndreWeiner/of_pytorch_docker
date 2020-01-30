@@ -1,0 +1,25 @@
+FROM ubuntu:18.04
+
+# install dependencies to compile OpenFOAM
+RUN apt-get update && apt-get install -y build-essential flex bison cmake zlib1g-dev \
+    libboost-system-dev libboost-thread-dev libopenmpi-dev openmpi-bin gnuplot \
+    libreadline-dev libncurses-dev libxt-dev curl unzip vim
+
+# download and extract the sources of OpenFOAM and PyTorch (libtorch)
+RUN curl -L https://sourceforge.net/projects/openfoam/files/v1912/OpenFOAM-v1912.tgz > OpenFOAM-v1912.tgz && \
+    mkdir /opt/OpenFOAM && \
+    tar -xzf OpenFOAM-v1912.tgz -C /opt/OpenFOAM/ && \
+    curl https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip > libtorch.zip && \
+    unzip libtorch.zip -d opt/ && \
+    rm *.zip *.tgz
+
+# set default shell to bash to source OpenFOAM specific environment variables
+SHELL ["/bin/bash", "-c"]
+
+# change installation directory to /opt/OpenFOAM
+WORKDIR /opt/OpenFOAM/OpenFOAM-v1912
+RUN echo "source /opt/OpenFOAM/OpenFOAM-v1912/etc/bashrc" >> /etc/bash.bashrc && \
+    source /opt/OpenFOAM/OpenFOAM-v1912/etc/bashrc && ./Allwmake -j 8
+
+# set libtorch enironment variable
+ENV TORCH_LIBRARIES /opt/libtorch
