@@ -1,0 +1,47 @@
+FROM ubuntu:20.04
+
+## user defined variables
+# avoid time zone configuration by tzdata
+ARG DEBIAN_FRONTEND=noninteractive
+# number of parallel jobs to compile OpenFOAM
+ARG NP=2
+
+## install dependencies to compile OpenFOAM
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    bison                   \
+    build-essential         \
+    ca-certificates         \
+    curl                    \
+    cmake                   \
+    flex                    \
+    gnuplot                 \
+    libboost-system-dev     \
+    libboost-thread-dev     \
+    libfl-dev               \
+    libncurses-dev          \
+    libopenmpi-dev          \
+    libreadline-dev         \
+    libxt-dev               \
+    openmpi-bin             \
+    unzip                   \
+    vim                     \
+    zlib1g-dev
+
+## download and extract the sources of OpenFOAM and PyTorch (libtorch)
+RUN curl -L https://sourceforge.net/projects/openfoam/files/v1912/OpenFOAM-v1912.tgz > OpenFOAM-v1912.tgz && \
+    mkdir /opt/OpenFOAM && \
+    tar -xzf OpenFOAM-v1912.tgz -C /opt/OpenFOAM/ && \
+    curl https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.5.0%2Bcpu.zip > libtorch.zip && \
+    unzip libtorch.zip -d opt/ && \
+    rm *.zip *.tgz
+
+## set default shell to bash to source OpenFOAM specific environment variables
+SHELL ["/bin/bash", "-c"]
+
+## change installation directory to /opt/OpenFOAM
+WORKDIR /opt/OpenFOAM/OpenFOAM-v1912
+RUN echo "source /opt/OpenFOAM/OpenFOAM-v1912/etc/bashrc" >> /etc/bash.bashrc && \
+    source /opt/OpenFOAM/OpenFOAM-v1912/etc/bashrc && ./Allwmake -j $NP
+
+## set libtorch enironment variable
+ENV TORCH_LIBRARIES /opt/libtorch

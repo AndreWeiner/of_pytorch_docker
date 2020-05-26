@@ -3,9 +3,29 @@
 ## Overview
 
 The Dockerfile in this repository creates an image with [OpenFOAM-plus](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
-- Ubuntu 18.04,
+- Ubuntu 20.04,
 - OpenFOAM-v1912, and
-- PyTorch 1.4 (without GPU support).
+- PyTorch 1.5 (without GPU support).
+
+The image currently contains only the OpenFOAM base library without any third-party packages other than openMPI (installed via the Ubuntu packages manager). Consequently, not all functionality will be available. Here is a short and incomplete list of tools/functions that are not working:
+- CGAL-based applications, e.g., *foamyHexMesh*
+- scotch/metis/etc. decomposition
+- adios parallel IO
+- fast fourier transformation, e.g., *noise*
+- *paraview*/*paraFoam*
+
+You may have a look at the [ThirdParty-common](https://develop.openfoam.com/Development/ThirdParty-common) repository to get a more comprehensive overview.
+
+## Get in touch
+
+If you would like to suggest
+- changes in the build process,
+- the pre-installed packages,
+- the *third-party* packages,
+- improvements in the documentation, or
+- other improvements,
+
+please use the [issue tracker](https://github.com/AndreWeiner/of_pytorch_docker/issues).
 
 ## How to build the image
 
@@ -16,14 +36,22 @@ cd of_pytorch_docker
 ```
 If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
 ```
-docker build -t your_registry_name/of_pytorch:of1912-py1.4-cpu -f Dockerfile.abi .
+docker build -t your_registry_name/of_pytorch:of1912-py1.5-cpu -f Dockerfile.abi .
+```
+By default, the OpenFOAM library will be compiled running two jobs in parallel. If you prefer to use more jobs, set the *NP* build argument, e.g.:
+```
+docker build --build-args NP=8 -t your_registry_name/of_pytorch:of1912-py1.5-cpu -f Dockerfile.abi .
+```
+I also recommend to save the docker output in a log-file:
+```
+docker build --build-args NP=8 -t your_registry_name/of_pytorch:of1912-py1.5-cpu -f Dockerfile.abi . &> log.docker
 ```
 
 ## Dockerfile details and practical tips
 
 ### PyTorch versions 1.3 and later (with ABI)
 
-Since version 1.3 of PyTorch, there is a version of libtorch compiled with ABI enabled ([read more](https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html)). However, it is still necessary to build the OpenFOAM sources because the compiler version in the default centOS-based docker image uses a very old compiler (gcc 4.8) which is not compatible with current versions of PyTorch.
+Since version 1.3 of PyTorch, there is a version of libtorch compiled with ABI enabled ([read more](https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html)). However, it is still necessary to build the OpenFOAM sources because the compiler version in the default centOS-based docker image uses a compiler (gcc 4.8) which is not compatible with current versions of PyTorch.
 
 ### Prior to PyTorch 1.3 (no ABI)
 
