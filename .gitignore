@@ -3,3 +3,4 @@
 *.pt
 linux64GccDPInt32Opt
 .bash_history
+*.sif

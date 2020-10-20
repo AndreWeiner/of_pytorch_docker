@@ -1,4 +1,4 @@
-# Docker + OpenFOAM&reg; + PyTorch
+# Docker/Singularity + OpenFOAM&reg; + PyTorch
 
 ## Overview
 
@@ -12,19 +12,39 @@ There are also convenience scripts for creating and running a container based on
 
 OpenFOAM is not compiled from scratch but installed via the package manager ([read more](https://develop.openfoam.com/Development/openfoam/-/wikis/precompiled/debian)). Also for PyTorch, only the pre-compiled C++ part of the library, named *libtorch*, is contained on the image.
 
-## Get in touch
+## How to build the images
 
-If you would like to suggest changes or improvements regarding the
+### Docker image
 
-- build process,
-- pre-installed packages,
-- examples,
-- documentation,
-- ...
+To build the image yourself, copy this repository and navigate into the top-level folder:
+```
+git clone https://github.com/AndreWeiner/of_pytorch_docker.git
+cd of_pytorch_docker
+```
+If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
+```
+docker build -t user_name/of_pytorch:of2006-py1.6-cpu -f Dockerfile .
+```
 
-please use the [issue tracker](https://github.com/AndreWeiner/of_pytorch_docker/issues).
+### Singularity definition file
 
-## How to use the image
+For public clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported virtualization tool. In contrast to Docker, the **execution** of Singularity images does not require root-privileges (the image creation does, though). The *Singularity.def* file converts the Docker image into a Singularity image named, e.g., *of2006-py1.6-cpu.sif*. To create the image, run:
+
+```
+sudo singularity build of2006-py1.6-cpu.sif Singularity.def
+```
+
+The image may used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default. To start an interactive shell, run:
+
+```
+singularity shell of2006-py1.6-cpu.sif
+# first thing to do inside the container
+. /usr/lib/openfoam/openfoam2006/etc/bashrc
+```
+
+## Usage and examples
+
+### Docker image
 
 Copy this repository and navigate into the top-level folder:
 ```
@@ -82,19 +102,42 @@ make
 ./simpleMLP
 ```
 
-## How to build the image
+### Singularity image
 
-### Dockerfile using pre-compiled packages (default)
+The singularity image contains some simple shell logic to execute commands in a given path. This addition simplifies creating batch jobs. The general syntax is:
 
-To build the image yourself, copy this repository and navigate into the top-level folder:
 ```
-git clone https://github.com/AndreWeiner/of_pytorch_docker.git
-cd of_pytorch_docker
+singularity run of2006-py1.6-cpu.sif command [path] [arguments]
 ```
-If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
+Assuming you are in the top-level folder of this repository, you can build and run *tensorCreation* as follows:
+
 ```
-docker build -t user_name/of_pytorch:of2006-py1.6-cpu -f Dockerfile .
+# build
+singularity run of2006-py1.6-cpu.sif wmake test/tensorCreation/
+# run
+singularity run of2006-py1.6-cpu.sif ./tensorCreation test/tensorCreation/
+# clean
+singularity run of2006-py1.6-cpu.sif wclean test/tensorCreation/
 ```
+Alternatively, one can also define scripts, which are then executed by Singularity. For example, to build and run the second example, *simpleMLP*, run the *compileAndRun.sh* script:
+
+```
+singularity run of2006-py1.6-cpu.sif ./compileAndRun.sh test/simpleMLP/
+```
+
+## Get in touch
+
+If you would like to suggest changes or improvements regarding the
+
+- build process,
+- pre-installed packages,
+- examples,
+- documentation,
+- ...
+
+please use the [issue tracker](https://github.com/AndreWeiner/of_pytorch_docker/issues).
+
+## Miscellaneous
 
 ### Older versions of the Dockerfile
 
