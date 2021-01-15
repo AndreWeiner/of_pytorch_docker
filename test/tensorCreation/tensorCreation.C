@@ -10,15 +10,18 @@ Description
     - basic mathematical functions
     - autograd to compute derivatives
     - saving tensors to disk
+    - creating at::Tensor based on std::vector
 \*---------------------------------------------------------------------------*/
 
 #include <torch/torch.h>
 #include <iostream>
+#include <vector>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 using std::cout;
 using std::setw;
+using std::vector;
 
 int main(int argc, char *argv[])
 {
@@ -54,6 +57,12 @@ int main(int argc, char *argv[])
 
     cout << "\n->Saving the derivative for later use...\n";
     torch::save(dx_sin_x, "derivative.pt");
+
+    cout << "\n->Initializing a at::Tensor based on a std::vector:\n";
+    vector<double> some_vector{1.0, 2.0, 3.0};
+    auto tensor_from_vector = torch::from_blob(some_vector.data(), some_vector.size(), options).clone();
+    cout << tensor_from_vector << "\n";
+
 
     cout << "\n->The end\n";
 
