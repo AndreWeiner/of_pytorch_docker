@@ -59,7 +59,7 @@ The script *create_openfoam_container.sh* creates a container with suitable sett
 ./create_openfoam_container.sh
 
 # use different image, e.g., to use an older version
-./create_openfoam_container.sh "andreweiner/of_pytorch:of2006-py1.6-cpu" "of2006-py1.6-cpu" 
+./create_openfoam_container.sh "andreweiner/of_pytorch:of2012-py1.7.1-cpu" "of2012-py1.7.1-cpu" 
 ```
 
 The *start_openfoam.sh* script starts an interactive shell instance in the running container. If you modified the container name in the previous step, provide the modified name as command line argument.
