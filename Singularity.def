@@ -1,12 +1,12 @@
 Bootstrap: docker
-From: andreweiner/of_pytorch:of2006-py1.6-cpu
+From: andreweiner/of_pytorch:of2012-py1.7.1-cpu
   
 %runscript
 
-  CMD="${1:?[Please specify a command; singularity run-help of2006-py1.6-cpu.sif]}"
+  CMD="${1:?[Please specify a command; singularity run-help of2012-py1.7.1-cpu.sif]}"
 
   # openFOAM environment variables
-  . /usr/lib/openfoam/openfoam2006/etc/bashrc
+  . /usr/lib/openfoam/openfoam2012/etc/bashrc
 
   if [ "$#" -eq "1" ]; then
     $CMD
@@ -21,8 +21,8 @@ From: andreweiner/of_pytorch:of2006-py1.6-cpu
   fi
 
 %help
-  Simple Singularity image containing OpenFOAM-v2006
-  and libtorch (PyTorch 1.6). The generic syntax to execute
+  Simple Singularity image containing OpenFOAM-v2012
+  and libtorch (PyTorch 1.7.1). The generic syntax to execute
   a command with arguments is
 
   singularity run image_name.sif command [path] [argument]
@@ -30,10 +30,10 @@ From: andreweiner/of_pytorch:of2006-py1.6-cpu
   Examples:
 
   - compile the application tensorCreation using wmake
-    singularity run of2006-py1.6-cpu.sif wmake test/tensorCreation/
+    singularity run of2012-py1.7.1-cpu.sif wmake test/tensorCreation/
 
   - clean tensorCreation build
-    singularity run of2006-py1.6-cpu.sif wclean test/tensorCreation/
+    singularity run of2012-py1.7.1-cpu.sif wclean test/tensorCreation/
 
   - run tensorCreation
-    singularity run of2006-py1.6-cpu.sif ./tensorCreation test/tensorCreation/
+    singularity run of2012-py1.7.1-cpu.sif ./tensorCreation test/tensorCreation/

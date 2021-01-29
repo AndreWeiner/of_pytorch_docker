@@ -5,8 +5,8 @@
 The Dockerfile in this repository creates an image with [OpenFOAM-plus](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
 
 - Ubuntu 20.04,
-- OpenFOAM-v2006, and
-- PyTorch 1.6 (only CPU).
+- OpenFOAM-v2012, and
+- PyTorch 1.7.1 (only CPU).
 
 There are also convenience scripts for creating and running a container based on the image. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
 
@@ -23,7 +23,7 @@ cd of_pytorch_docker
 ```
 If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
 ```
-docker build -t user_name/of_pytorch:of2006-py1.6-cpu -f Dockerfile .
+docker build -t user_name/of_pytorch:of2012-py1.7.1-cpu -f Dockerfile .
 ```
 
 ### Singularity definition file
@@ -31,15 +31,15 @@ docker build -t user_name/of_pytorch:of2006-py1.6-cpu -f Dockerfile .
 For public clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported virtualization tool. In contrast to Docker, the **execution** of Singularity images does not require root-privileges (the image creation does, though). The *Singularity.def* file converts the Docker image into a Singularity image named, e.g., *of2006-py1.6-cpu.sif*. To create the image, run:
 
 ```
-sudo singularity build of2006-py1.6-cpu.sif Singularity.def
+sudo singularity build of2012-py1.7.1-cpu.sif Singularity.def
 ```
 
 The image may used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default. To start an interactive shell, run:
 
 ```
-singularity shell of2006-py1.6-cpu.sif
+singularity shell of2012-py1.7.1-cpu.sif
 # first thing to do inside the container
-. /usr/lib/openfoam/openfoam2006/etc/bashrc
+. /usr/lib/openfoam/openfoam2012/etc/bashrc
 ```
 
 ## Usage and examples
@@ -69,7 +69,7 @@ The *start_openfoam.sh* script starts an interactive shell instance in the runni
 ./start_openfoam.sh
 
 # custom container name
-./start_openfoam.sh "of2006-py1.6-cpu"
+./start_openfoam.sh "of2012-py1.7.1-cpu"
 ```
 
 The container's entry point is set to the *test* directory. There you are presented with two examples:
@@ -107,22 +107,22 @@ make
 The singularity image contains some simple shell logic to execute commands in a given path. This addition simplifies creating batch jobs. The general syntax is:
 
 ```
-singularity run of2006-py1.6-cpu.sif command [path] [arguments]
+singularity run of2012-py1.7.1-cpu.sif command [path] [arguments]
 ```
 Assuming you are in the top-level folder of this repository, you can build and run *tensorCreation* as follows:
 
 ```
 # build
-singularity run of2006-py1.6-cpu.sif wmake test/tensorCreation/
+singularity run of2012-py1.7.1-cpu.sif wmake test/tensorCreation/
 # run
-singularity run of2006-py1.6-cpu.sif ./tensorCreation test/tensorCreation/
+singularity run of2012-py1.7.1-cpu.sif ./tensorCreation test/tensorCreation/
 # clean
-singularity run of2006-py1.6-cpu.sif wclean test/tensorCreation/
+singularity run of2012-py1.7.1-cpu.sif wclean test/tensorCreation/
 ```
 Alternatively, one can also define scripts, which are then executed by Singularity. For example, to build and run the second example, *simpleMLP*, run the *compileAndRun.sh* script:
 
 ```
-singularity run of2006-py1.6-cpu.sif ./compileAndRun.sh test/simpleMLP/
+singularity run of2012-py1.7.1-cpu.sif ./compileAndRun.sh test/simpleMLP/
 ```
 
 ## Get in touch
@@ -138,6 +138,16 @@ If you would like to suggest changes or improvements regarding the
 please use the [issue tracker](https://github.com/AndreWeiner/of_pytorch_docker/issues).
 
 ## Miscellaneous
+
+### Issue with Sourceforge
+
+Building the Docker image sometimes fails with the error message:
+
+>E: Failed to fetch https://nav.dl.sourceforge.net/project/openfoam/repos/deb/dists/focal/main/pool/2012_1/binary-amd64/openfoam2012_1-2_amd64.deb  
+>Could not connect to nav.dl.sourceforge.net:443 (5.154.224.27), connection timed out
+>E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+
+The OpenFOAM Debian package is hosted on Sourceforge, and sometimes their servers are not available. Usually waiting a couple of minutes before rebuilding the image helps to solve this issue.
 
 ### Older versions of the Dockerfile
 
