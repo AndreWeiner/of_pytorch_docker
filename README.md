@@ -37,9 +37,9 @@ sudo singularity build of2106-py1.9.0-cpu.sif Singularity.def
 The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default (e.g., mapping the user and important directories). To start an interactive shell, run:
 
 ```
-singularity shell of2012-py1.7.1-cpu.sif
+singularity shell of2106-py1.9.0-cpu.sif
 # first thing to do inside the container
-. /usr/lib/openfoam/openfoam2012/etc/bashrc
+. /usr/lib/openfoam/openfoam2106/etc/bashrc
 ```
 
 ## Usage and examples
@@ -59,7 +59,7 @@ The script *create_openfoam_container.sh* creates a container with suitable sett
 ./create_openfoam_container.sh
 
 # use different image, e.g., to use an older version
-./create_openfoam_container.sh "andreweiner/of_pytorch:of2106-py1.7.1-cpu" "of2012-py1.7.1-cpu" 
+./create_openfoam_container.sh "andreweiner/of_pytorch:of2012-py1.7.1-cpu" "of2012-py1.7.1-cpu" 
 ```
 
 The *start_openfoam.sh* script starts an interactive shell instance in the running container. If you modified the container name in the previous step, provide the modified name as command line argument.
