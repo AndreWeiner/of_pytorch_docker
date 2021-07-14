@@ -1,8 +1,8 @@
 username="$USER"
 user="$(id -u)"
-default_image="andreweiner/of_pytorch:of2012-py1.7.1-cpu"
+default_image="andreweiner/of_pytorch:of2106-py1.9.0-cpu"
 image="${1:-$default_image}"
-default_container_name="of2012-py1.7.1-cpu"
+default_container_name="of2106-py1.9.0-cpu"
 container_name="${2:-$default_container_name}"
 
 docker container run -it -d --name $container_name        \
