@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Dockerfile in this repository creates an image with [OpenFOAM-plus](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
+The Dockerfile in this repository creates an image with [ESI-OpenFOAM](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
 
 - Ubuntu 20.04,
-- OpenFOAM-v2106, and
-- PyTorch 1.9.0 (only CPU).
+- OpenFOAM-v2112, and
+- PyTorch 1.10.2 (only CPU).
 
-There are also convenience scripts for creating and running a container based on the image. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
+There are also convenience scripts for working with the images. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
 
 OpenFOAM is not compiled from scratch but installed via the package manager ([read more](https://develop.openfoam.com/Development/openfoam/-/wikis/precompiled/debian)). Also for PyTorch, only the pre-compiled C++ part of the library, named *libtorch*, is contained on the image.
 
@@ -23,23 +23,28 @@ cd of_pytorch_docker
 ```
 If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
 ```
-docker build -t user_name/of_pytorch:of2106-py1.9.0-cpu -f Dockerfile .
+docker build -t user_name/of_pytorch:of2112-py1.10.2-cpu -f Dockerfile .
+```
+Pushing the image to Dockerhub works as follows:
+```
+docker login
+docker push user_name/of_pytorch:of2112-py1.10.2-cpu
 ```
 
-### Singularity definition file
+A word on *Podman*: due to the strong compatibility between Docker and Podman (builder), building and using the image with Podman instead of Docker should work, too, but I have not tested it yet.
 
-For university clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported container tool. In contrast to Docker, the **execution** of Singularity images does not require root-privileges (the image creation does, though). The *Singularity.def* file converts the Docker image into a Singularity image named, e.g., *of2106-py1.9.0-cpu.sif*. To create the image, run:
+### Singularity image
 
+For university clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported container tool. In contrast to the default Docker workflow, the **execution** of Singularity containers does not require root-privileges (the image creation does, though). Moreover, Singularity works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Singularity by running:
 ```
-sudo singularity build of2106-py1.9.0-cpu.sif Singularity.def
+sudo singularity build of2112-py1.10.2-cpu.sif docker://andreweiner/of_pytorch:of2112-py1.10.2-cpu
 ```
-
 The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default (e.g., mapping the user and important directories). To start an interactive shell, run:
-
 ```
-singularity shell of2106-py1.9.0-cpu.sif
+singularity shell of2112-py1.10.2-cpu.sif
 # first thing to do inside the container
-. /usr/lib/openfoam/openfoam2106/etc/bashrc
+. /usr/lib/openfoam/openfoam2112/etc/bashrc
+# now you are ready to run and build OpenFOAM+PyTorch applications
 ```
 
 ## Usage and examples
@@ -104,25 +109,19 @@ make
 
 ### Singularity image
 
-The singularity image contains some simple shell logic to execute commands in a given path. This addition simplifies creating batch jobs. The general syntax is:
+From the top-level folder of this repository, you can build and run the examples as follows:
 
 ```
-singularity run of2106-py1.9.0-cpu.sif command [path] [arguments]
-```
-Assuming you are in the top-level folder of this repository, you can build and run *tensorCreation* as follows:
-
-```
-# build
-singularity run of2106-py1.9.0-cpu.sif wmake test/tensorCreation/
-# run
-singularity run of2106-py1.9.0-cpu.sif ./tensorCreation test/tensorCreation/
-# clean
-singularity run of2106-py1.9.0-cpu.sif wclean test/tensorCreation/
-```
-Alternatively, one can also define scripts, which are then executed by Singularity. For example, to build and run the second example, *simpleMLP*, run the *compileAndRun.sh* script:
-
-```
-singularity run of2106-py1.9.0-cpu.sif ./compileAndRun.sh test/simpleMLP/
+singularity shell of2112-py1.10.2-cpu.sif
+# first thing to do inside the container
+. /usr/lib/openfoam/openfoam2112/etc/bashrc
+# go to the tensorCreation example, compile, and run
+cd test/tensorCreation
+wmake
+./tensorCreation
+# go to the simpleMLP example and execute the test script
+cd ../simpleMLP
+./compileAndRun.sh
 ```
 
 To hide the additional complexity from using containers, one can also define shell functions that assemble suitable commands in the background. E.g., in [this](https://github.com/AndreWeiner/naca0012_shock_buffet/blob/main/functions) file, the function `singularityRun` works the same way as the frequently used `runApplication` but uses a singularity image in the background.
