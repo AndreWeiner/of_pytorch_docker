@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # avoid time zone configuration by tzdata
 ARG DEBIAN_FRONTEND=noninteractive
@@ -19,16 +19,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 RUN wget -q -O - https://dl.openfoam.com/add-debian-repo.sh | bash
 
 # install OpenFOAM via Debian package
-ARG FOAM_PATH=/usr/lib/openfoam/openfoam2112
+ARG FOAM_PATH=/usr/lib/openfoam/openfoam2206
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    openfoam2112-default && \
+    openfoam2206-default && \
     echo ". ${FOAM_PATH}/etc/bashrc" >> /etc/bash.bashrc && \
     sed -i "s/-std=c++11/-std=c++14/g" ${FOAM_PATH}/wmake/rules/General/Gcc/c++ && \
     sed -i "s/-Wold-style-cast/-Wno-old-style-cast/g" ${FOAM_PATH}/wmake/rules/General/Gcc/c++
 
 
 ## download and extract the PyTorch C++ libraries (libtorch)
-RUN wget -q -O libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.10.2%2Bcpu.zip && \
+RUN wget -q -O libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.11.0%2Bcpu.zip && \
     unzip libtorch.zip -d opt/ && \
     rm *.zip
 
