@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 
 ## download and extract the PyTorch C++ libraries (libtorch)
-RUN wget -q -O libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.11.0%2Bcpu.zip && \
+RUN wget -q -O libtorch.zip https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.12.1%2Bcpu.zip && \
     unzip libtorch.zip -d opt/ && \
     rm *.zip
 

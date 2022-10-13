@@ -6,7 +6,7 @@ The Dockerfile in this repository creates an image with [ESI-OpenFOAM](https://o
 
 - Ubuntu 22.04,
 - OpenFOAM-v2206, and
-- PyTorch 1.11.0 (only CPU).
+- PyTorch 1.12.1 (only CPU).
 
 There are also convenience scripts for working with the images. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
 
@@ -23,7 +23,7 @@ cd of_pytorch_docker
 ```
 If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
 ```
-docker build -t user_name/of_pytorch:of2206-py1.11.0-cpu -f Dockerfile .
+docker build -t user_name/of_pytorch:of2206-py1.12.1-cpu -f Dockerfile .
 ```
 Pushing the image to Dockerhub works as follows:
 ```
@@ -37,11 +37,11 @@ A word on *Podman*: due to the strong compatibility between Docker and Podman (b
 
 For university clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported container tool. In contrast to the default Docker workflow, the **execution** of Singularity containers does not require root-privileges (the image creation does, though). Moreover, Singularity works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Singularity by running:
 ```
-sudo singularity build of2206-py1.11.0-cpu.sif docker://andreweiner/of_pytorch:of2206-py1.11.0-cpu
+sudo singularity build of2206-py1.12.1-cpu.sif docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
 ```
 The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default (e.g., mapping the user and important directories). To start an interactive shell, run:
 ```
-singularity shell of2206-py1.11.0-cpu.sif
+singularity shell of2206-py1.12.1-cpu.sif
 # first thing to do inside the container
 . /usr/lib/openfoam/openfoam2206/etc/bashrc
 # now you are ready to run and build OpenFOAM+PyTorch applications
@@ -112,7 +112,7 @@ make
 From the top-level folder of this repository, you can build and run the examples as follows:
 
 ```
-singularity shell of2206-py1.11.0-cpu.sif
+singularity shell of2206-py1.12.1-cpu.sif
 # first thing to do inside the container
 . /usr/lib/openfoam/openfoam2206/etc/bashrc
 # go to the tensorCreation example, compile, and run
