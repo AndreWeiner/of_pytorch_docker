@@ -1,4 +1,4 @@
-# Docker/Singularity + OpenFOAM&reg; + PyTorch
+# Docker/Singularity/Apptainer + OpenFOAM&reg; + PyTorch
 
 ## Overview
 
@@ -33,15 +33,15 @@ docker push user_name/of_pytorch:of2206-py1.11.0-cpu
 
 A word on *Podman*: due to the strong compatibility between Docker and Podman (builder), building and using the image with Podman instead of Docker should work, too, but I have not tested it yet.
 
-### Singularity image
+### Singularity/Apptainer image
 
-For university clusters, [Singularity](https://sylabs.io/guides/3.6/user-guide/introduction.html) is often the only supported container tool. In contrast to the default Docker workflow, the **execution** of Singularity containers does not require root-privileges (the image creation does, though). Moreover, Singularity works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Singularity by running:
+For university clusters, [Singularity/Apptainer](https://apptainer.org/docs/user/main/introduction.html) is often the only supported container tool. Note that Singularity was renamed to **Apptainer** after joining the Linux Foundation. In contrast to the default Docker workflow, the **execution** of Apptainer containers does not require root-privileges (the image creation does, though). Moreover, Apptainer works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Apptainer by running:
 ```
-sudo singularity build of2206-py1.12.1-cpu.sif docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
+sudo apptainer build of2206-py1.12.1-cpu.sif docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
 ```
-The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Singularity performs similar actions by default (e.g., mapping the user and important directories). To start an interactive shell, run:
+The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Apptainer performs similar actions by default (e.g., mapping of the user and important directories). To start an interactive shell, run:
 ```
-singularity shell of2206-py1.12.1-cpu.sif
+apptainer shell of2206-py1.12.1-cpu.sif
 # first thing to do inside the container
 . /usr/lib/openfoam/openfoam2206/etc/bashrc
 # now you are ready to run and build OpenFOAM+PyTorch applications
@@ -107,12 +107,12 @@ make
 ./simpleMLP
 ```
 
-### Singularity image
+### Singularity/Apptainer image
 
 From the top-level folder of this repository, you can build and run the examples as follows:
 
 ```
-singularity shell of2206-py1.12.1-cpu.sif
+apptainer shell of2206-py1.12.1-cpu.sif
 # first thing to do inside the container
 . /usr/lib/openfoam/openfoam2206/etc/bashrc
 # go to the tensorCreation example, compile, and run
@@ -124,7 +124,7 @@ cd ../simpleMLP
 ./compileAndRun.sh
 ```
 
-To hide the additional complexity from using containers, one can also define shell functions that assemble suitable commands in the background. E.g., in [this](https://github.com/FlowModelingControl/naca0012_shock_buffet/blob/main/functions) file, the function `singularityRun` works the same way as the frequently used `runApplication` but uses a singularity image in the background.
+To hide the additional complexity from using containers, one can also define shell functions that assemble suitable commands in the background. E.g., in [this](https://github.com/FlowModelingControl/naca0012_shock_buffet/blob/main/functions) file, the function `singularityRun` works the same way as the frequently used `runApplication` but uses a Singularity/Apptainer image in the background.
 
 ## Get in touch
 
