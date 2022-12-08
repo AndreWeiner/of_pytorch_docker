@@ -47,6 +47,14 @@ apptainer shell of2206-py1.12.1-cpu.sif
 # now you are ready to run and build OpenFOAM+PyTorch applications
 ```
 
+### Enroot image
+
+As pointed out in [this issue](https://github.com/AndreWeiner/of_pytorch_docker/issues/4) by [@dr-br](https://github.com/dr-br), it is fairly easy to use the Docker image with Nvidia's [enroot](https://github.com/NVIDIA/enroot). After installing enroot, the following commands pull and convert the Docker image:
+```
+enroot import docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
+enroot create --name of2206-py1.12.1-cpu andreweiner+of_pytorch+of2206-py1.12.1-cpu.sqsh
+```
+
 ## Usage and examples
 
 ### Docker image
@@ -125,6 +133,15 @@ cd ../simpleMLP
 ```
 
 To hide the additional complexity from using containers, one can also define shell functions that assemble suitable commands in the background. E.g., in [this](https://github.com/FlowModelingControl/naca0012_shock_buffet/blob/main/functions) file, the function `singularityRun` works the same way as the frequently used `runApplication` but uses a Singularity/Apptainer image in the background.
+
+### Enroot image
+
+Using enroot is very similar to working with Apptainer. The main difference is that we have to bind the *test* directory manually. The command:
+```
+# assuming to be at the top-level of this repository
+enroot start -m "$PWD/test":"/home/$USER" of2206-py1.12.1-cpu bash
+```
+binds the *test* folder on the host to */home/$USER* inside the container and starts a new shell. Once the shell is open, compiling and running the tests works as described before.
 
 ## Get in touch
 
