@@ -4,9 +4,9 @@
 
 The Dockerfile in this repository creates an image with [ESI-OpenFOAM](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
 
-- Ubuntu 22.04,
-- OpenFOAM-v2206, and
-- PyTorch 1.12.1 (only CPU).
+- Ubuntu 24.04,
+- OpenFOAM-v2406, and
+- PyTorch 2.5.0 (only CPU).
 
 There are also convenience scripts for working with the images. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
 
@@ -23,12 +23,12 @@ cd of_pytorch_docker
 ```
 If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
 ```
-docker build -t user_name/of_pytorch:of2206-py1.12.1-cpu -f Dockerfile .
+docker build -t user_name/of_pytorch:of2404-py2.5.0-cpu -f Dockerfile .
 ```
 Pushing the image to Dockerhub works as follows:
 ```
 docker login
-docker push user_name/of_pytorch:of2206-py1.11.0-cpu
+docker push user_name/of_pytorch:of2406-py2.5.0-cpu
 ```
 
 A word on *Podman*: due to the strong compatibility between Docker and Podman (builder), building and using the image with Podman instead of Docker should work, too, but I have not tested it yet.
@@ -37,13 +37,13 @@ A word on *Podman*: due to the strong compatibility between Docker and Podman (b
 
 For university clusters, [Singularity/Apptainer](https://apptainer.org/docs/user/main/introduction.html) is often the only supported container tool. Note that Singularity was renamed to **Apptainer** after joining the Linux Foundation. In contrast to the default Docker workflow, the **execution** of Apptainer containers does not require root-privileges (the image creation does, though). Moreover, Apptainer works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Apptainer by running:
 ```
-sudo apptainer build of2206-py1.12.1-cpu.sif docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
+sudo apptainer build of2406-py2.5.0-cpu.sif docker://andreweiner/of_pytorch:of2406-py2.5.0-cpu
 ```
 The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Apptainer performs similar actions by default (e.g., mapping of the user and important directories). To start an interactive shell, run:
 ```
-apptainer shell of2206-py1.12.1-cpu.sif
+apptainer shell of2406-py2.5.0-cpu.sif
 # first thing to do inside the container
-. /usr/lib/openfoam/openfoam2206/etc/bashrc
+. /usr/lib/openfoam/openfoam2406/etc/bashrc
 # now you are ready to run and build OpenFOAM+PyTorch applications
 ```
 
@@ -51,8 +51,8 @@ apptainer shell of2206-py1.12.1-cpu.sif
 
 As pointed out in [this issue](https://github.com/AndreWeiner/of_pytorch_docker/issues/4) by [@dr-br](https://github.com/dr-br), it is fairly easy to use the Docker image with Nvidia's [enroot](https://github.com/NVIDIA/enroot). After installing enroot, the following commands pull and convert the Docker image:
 ```
-enroot import docker://andreweiner/of_pytorch:of2206-py1.12.1-cpu
-enroot create --name of2206-py1.12.1-cpu andreweiner+of_pytorch+of2206-py1.12.1-cpu.sqsh
+enroot import docker://andreweiner/of_pytorch:of2406-py2.5.0-cpu
+enroot create --name of2406-py2.5.0-cpu andreweiner+of_pytorch+of2406-py2.5.0-cpu.sqsh
 ```
 
 ## Usage and examples
@@ -120,9 +120,9 @@ make
 From the top-level folder of this repository, you can build and run the examples as follows:
 
 ```
-apptainer shell of2206-py1.12.1-cpu.sif
+apptainer shell of2406-py2.5.0-cpu.sif
 # first thing to do inside the container
-. /usr/lib/openfoam/openfoam2206/etc/bashrc
+. /usr/lib/openfoam/openfoam2406/etc/bashrc
 # go to the tensorCreation example, compile, and run
 cd test/tensorCreation
 wmake
@@ -139,7 +139,7 @@ To hide the additional complexity from using containers, one can also define she
 Using enroot is very similar to working with Apptainer. The main difference is that we have to bind the *test* directory manually. The command:
 ```
 # assuming to be at the top-level of this repository
-enroot start -m "$PWD/test":"/home/$USER" of2206-py1.12.1-cpu bash
+enroot start -m "$PWD/test":"/home/$USER" of2406-py2.5.0-cpu bash
 ```
 binds the *test* folder on the host to */home/$USER* inside the container and starts a new shell. Once the shell is open, compiling and running the tests works as described before.
 
