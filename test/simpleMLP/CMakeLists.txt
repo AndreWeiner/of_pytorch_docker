@@ -1,10 +1,9 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(pyTorchExample)
-
-list(APPEND CMAKE_PREFIX_PATH $ENV{TORCH_LIBRARIES})
+cmake_minimum_required(VERSION 3.18)
+project(pyTorchExample LANGUAGES CXX)
+list(APPEND CMAKE_PREFIX_PATH "$ENV{TORCH_LIBRARIES}")
 find_package(Torch REQUIRED)
-
-set(CMAKE_VERBOSE_MAKEFILE ON)
 add_executable(simpleMLP simpleMLP.C)
-target_link_libraries(simpleMLP ${TORCH_LIBRARIES})
-set_property(TARGET simpleMLP PROPERTY CXX_STANDARD 17)
+target_link_libraries(simpleMLP PRIVATE ${TORCH_LIBRARIES})
+separate_arguments(TORCH_COMPILE_FLAGS NATIVE_COMMAND "${TORCH_CXX_FLAGS}")
+target_compile_options(simpleMLP PRIVATE ${TORCH_COMPILE_FLAGS})
+set_target_properties(simpleMLP PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)

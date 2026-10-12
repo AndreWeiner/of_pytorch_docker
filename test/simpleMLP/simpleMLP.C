@@ -33,10 +33,13 @@ class SimpleMLPImpl : public Module {
 TORCH_MODULE(SimpleMLP);
 
 int main() {
+    torch::manual_seed(42);
     Tensor test_input = torch::ones({5, 2});
     cout << "Shape of input tensor:\n" << test_input.sizes() << "\n";
     auto model = SimpleMLP(2, 10, 1);
     Tensor result = model->forward(test_input);
     cout << "Shape of output tensor:\n" << result.sizes() << "\n";
+    TORCH_CHECK(result.sizes() == torch::IntArrayRef({5, 1}), "Unexpected MLP output shape");
+    TORCH_CHECK(torch::isfinite(result).all().item<bool>(), "MLP produced non-finite values");
     return 0;
 }

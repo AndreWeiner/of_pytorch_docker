@@ -4,3 +4,7 @@
 linux64GccDPInt32Opt
 .bash_history
 *.sif
+
+/build/
+**/build/
+/test/tensorCreation/tensorCreation

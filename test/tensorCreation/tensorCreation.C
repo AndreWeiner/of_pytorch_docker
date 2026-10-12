@@ -13,7 +13,10 @@ Description
     - creating at::Tensor based on std::vector
 \*---------------------------------------------------------------------------*/
 
+// Include LibTorch before OpenFOAM defines its TypeName macro.
 #include <torch/torch.h>
+#include "argList.H"
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -48,6 +51,7 @@ int main(int argc, char *argv[])
 
     cout << "\n->Comparing autograd and analytical solution:\n";
     auto analytical = torch::cos(x);
+    TORCH_CHECK(torch::allclose(dx_sin_x, analytical, 1e-10, 1e-12), "Autograd derivative does not match cos(x)");
     auto analytical_accessor = analytical.accessor<double,1>();
     auto autograd = dx_sin_x.accessor<double,1>();
     cout << setw(15) << "autograd" << setw(15) << "analytical\n";
@@ -62,6 +66,10 @@ int main(int argc, char *argv[])
     vector<double> some_vector{1.0, 2.0, 3.0};
     auto tensor_from_vector = torch::from_blob(some_vector.data(), some_vector.size(), options).clone();
     cout << tensor_from_vector << "\n";
+    TORCH_CHECK(torch::allclose(tensor_from_vector, torch::tensor({1.0, 2.0, 3.0}, torch::kFloat64)), "Tensor values differ");
+    torch::Tensor loaded;
+    torch::load(loaded, "derivative.pt");
+    TORCH_CHECK(torch::allclose(loaded, dx_sin_x), "Saved tensor differs after loading");
 
 
     cout << "\n->The end\n";

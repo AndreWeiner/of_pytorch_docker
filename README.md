@@ -1,214 +1,102 @@
-# Docker/Singularity/Apptainer + OpenFOAM&reg; + PyTorch
+# OpenFOAM.com + LibTorch containers
 
-## Overview
+The default image contains Ubuntu 26.04, **OpenFOAM.com v2606**, and **CPU LibTorch 2.14.1**. These are the current OpenFOAM.com release and latest stable PyTorch release checked on 12 October 2026. The image contains the C++ library, not the Python PyTorch package. For Python-generated models, use the matching Python PyTorch release.
 
-The Dockerfile in this repository creates an image with [ESI-OpenFOAM](https://openfoam.com/) and [PyTorch](https://pytorch.org/) support. The image is currently based on
+Sources: [OpenFOAM v2606](https://www.openfoam.com/news/main-news/openfoam-v2606), [PyTorch 2.14.1](https://github.com/pytorch/pytorch/releases/tag/v2.14.1), and the [official CPU archive index](https://download.pytorch.org/libtorch/cpu/).
 
-- Ubuntu 24.04,
-- OpenFOAM-v2406, and
-- PyTorch 2.5.0 (only CPU).
+LibTorch now requires **C++20**. OpenFOAM v2606 uses C++17 by default; the example's `Make/options` selects C++20 for that application, and the CMake example selects C++20 explicitly. OpenFOAM's installed compiler rules are not modified. The CPU archive uses the C++11 ABI; the archive naming no longer includes `cxx11-abi`. Its checksum is recorded in both recipes.
 
-There are also convenience scripts for working with the images. The *test* directory contains two examples demonstrating how to compile applications using *cmake* and *wmake*
+## Pull the published Apptainer container
 
-OpenFOAM is not compiled from scratch but installed via the package manager ([read more](https://develop.openfoam.com/Development/openfoam/-/wikis/precompiled/debian)). Also for PyTorch, only the pre-compiled C++ part of the library, named *libtorch*, is contained on the image.
+The tested image is hosted in [GitHub Container Registry](https://github.com/users/AndreWeiner/packages/container/package/of-pytorch). It contains **Ubuntu 26.04.1 LTS**, **OpenFOAM.com v2606**, and **CPU LibTorch 2.14.1**.
 
-## How to build the images
-
-### Docker image
-
-To build the image yourself, copy this repository and navigate into the top-level folder:
-```
-git clone https://github.com/AndreWeiner/of_pytorch_docker.git
-cd of_pytorch_docker
-```
-If you want to upload the image to a Docker registry, consider the following naming convention when running the build command:
-```
-docker build -t user_name/of_pytorch:of2404-py2.5.0-cpu -f Dockerfile .
-```
-Pushing the image to Dockerhub works as follows:
-```
-docker login
-docker push user_name/of_pytorch:of2406-py2.5.0-cpu
+```bash
+apptainer pull of2606-py2.14.1-cpu.sif \
+  oras://ghcr.io/andreweiner/of-pytorch:of2606-libtorch2.14.1-ubuntu26.04-cpu
+apptainer run of2606-py2.14.1-cpu.sif simpleFoam -help
+apptainer run of2606-py2.14.1-cpu.sif /opt/of-pytorch-tests/run-tests.sh
 ```
 
-A word on *Podman*: due to the strong compatibility between Docker and Podman (builder), building and using the image with Podman instead of Docker should work, too, but I have not tested it yet.
+Use **`oras://`** for this image: it is an Apptainer SIF artifact, rather than a Docker image. It includes LibTorch, the C++ frontend; install Python PyTorch separately in your Python environment. You can alternatively build a Docker image locally using the recipe below.
 
-### Singularity/Apptainer image
+The SHA256 of the published SIF is:
 
-For university clusters, [Singularity/Apptainer](https://apptainer.org/docs/user/main/introduction.html) is often the only supported container tool. Note that Singularity was renamed to **Apptainer** after joining the Linux Foundation. In contrast to the default Docker workflow, the **execution** of Apptainer containers does not require root-privileges (the image creation does, though). Moreover, Apptainer works out of the box with Schedulers like SLURM and was build with focus on MPI-parallel applications. The Docker image built before can be easily converted to Apptainer by running:
-```
-sudo apptainer build of2406-py2.5.0-cpu.sif docker://andreweiner/of_pytorch:of2406-py2.5.0-cpu
-```
-The image may be used similarly to the Docker image. Convenience scripts like *create_openfoam_container.sh* or *start_openfoam.sh* are not necessary because Apptainer performs similar actions by default (e.g., mapping of the user and important directories). To start an interactive shell, run:
-```
-apptainer shell of2406-py2.5.0-cpu.sif
-# first thing to do inside the container
-. /usr/lib/openfoam/openfoam2406/etc/bashrc
-# now you are ready to run and build OpenFOAM+PyTorch applications
+```text
+5753c889670fbc305a42c264b493e2d737682512709041eff948a88b2db05988
 ```
 
-### Enroot image
+Check a download using `sha256sum of2606-py2.14.1-cpu.sif`. The examples passed during the build and again inside the finished image; the OpenFOAM startup check also passed. These checks were performed on 12 October 2026.
 
-As pointed out in [this issue](https://github.com/AndreWeiner/of_pytorch_docker/issues/4) by [@dr-br](https://github.com/dr-br), it is fairly easy to use the Docker image with Nvidia's [enroot](https://github.com/NVIDIA/enroot). After installing enroot, the following commands pull and convert the Docker image:
-```
-enroot import docker://andreweiner/of_pytorch:of2406-py2.5.0-cpu
-enroot create --name of2406-py2.5.0-cpu andreweiner+of_pytorch+of2406-py2.5.0-cpu.sqsh
-```
+## Build an Apptainer image directly
 
-## Usage and examples
+From the repository root:
 
-### Docker image
-
-Copy this repository and navigate into the top-level folder:
-```
-git clone https://github.com/AndreWeiner/of_pytorch_docker.git
-cd of_pytorch_docker
+```bash
+apptainer build --fakeroot of2606-py2.14.1-cpu.sif Singularity.def
 ```
 
-The script *create_openfoam_container.sh* creates a container with suitable settings (e.g. mapping the user into the container, mounting the current directory, setting the working directory to *./test/*). The script also pulls the Docker image from [Dockerhub](https://hub.docker.com/repository/docker/andreweiner/of_pytorch) if it cannot be found locally. The default image and container names can be changed by passing them as command line arguments.
+This builds from Ubuntu, installs OpenFOAM from its official package repository, downloads LibTorch, and compiles and runs both examples. It does not require an image to have been published to Docker Hub. Fakeroot requires suitable host configuration; see the [Apptainer build guide](https://apptainer.org/docs/user/latest/build_a_container.html). If your system does not permit fakeroot, a privileged build is an alternative:
 
-```
-# default settings
-./create_openfoam_container.sh
-
-# use different image, e.g., to use an older version
-./create_openfoam_container.sh "andreweiner/of_pytorch:of2012-py1.7.1-cpu" "of2012-py1.7.1-cpu" 
+```bash
+sudo apptainer build of2606-py2.14.1-cpu.sif Singularity.def
 ```
 
-The *start_openfoam.sh* script starts an interactive shell instance in the running container. If you modified the container name in the previous step, provide the modified name as command line argument.
+Run a command, passing its arguments normally:
 
-```
-# default
-./start_openfoam.sh
-
-# custom container name
-./start_openfoam.sh "of2012-py1.7.1-cpu"
+```bash
+apptainer run of2606-py2.14.1-cpu.sif simpleFoam -help
+apptainer run of2606-py2.14.1-cpu.sif /opt/of-pytorch-tests/run-tests.sh
 ```
 
-The container's entry point is set to the *test* directory. There you are presented with two examples:
+The runscript activates OpenFOAM and preserves the command's arguments. For an interactive shell:
 
-- **tensorCreation**: PyTorch tensor basics; compiled with **wmake**
-- **simpleMLP**: implementation of a simple *multilayer perceptron* (MLP) class; compiled with **cmake**
-
-### *tensorCreation*
-
-To compile and run *tensorCreation*, execute:
-```
-# you must be inside the container for this to work
-# execute ./start_openfoam.sh to launch a shell instance
-cd tensorCreation
-wmake
-./tensorCreation
+```bash
+apptainer shell of2606-py2.14.1-cpu.sif
+source /usr/lib/openfoam/openfoam2606/etc/bashrc
 ```
 
-### *simpleMLP*
+`apptainer exec` bypasses the runscript; activate OpenFOAM explicitly when using it:
 
-To compile and run *simpleMLP*, execute:
-```
-# you must be inside the container for this to work
-# execute ./start_openfoam.sh to launch a shell instance
-cd simpleMLP
-mkdir build
-cd build
-cmake ..
-make
-./simpleMLP
+```bash
+apptainer exec of2606-py2.14.1-cpu.sif bash -c \
+  'source "$FOAM_PATH/etc/bashrc" && /opt/of-pytorch-tests/run-tests.sh'
 ```
 
-### Singularity/Apptainer image
+## Build a Docker image
 
-From the top-level folder of this repository, you can build and run the examples as follows:
-
-```
-apptainer shell of2406-py2.5.0-cpu.sif
-# first thing to do inside the container
-. /usr/lib/openfoam/openfoam2406/etc/bashrc
-# go to the tensorCreation example, compile, and run
-cd test/tensorCreation
-wmake
-./tensorCreation
-# go to the simpleMLP example and execute the test script
-cd ../simpleMLP
-./compileAndRun.sh
+```bash
+docker build -t of_pytorch:of2606-py2.14.1-cpu .
+docker run --rm of_pytorch:of2606-py2.14.1-cpu bash -c \
+  'source "$FOAM_PATH/etc/bashrc" && /opt/of-pytorch-tests/run-tests.sh'
 ```
 
-To hide the additional complexity from using containers, one can also define shell functions that assemble suitable commands in the background. E.g., in [this](https://github.com/FlowModelingControl/naca0012_shock_buffet/blob/main/functions) file, the function `singularityRun` works the same way as the frequently used `runApplication` but uses a Singularity/Apptainer image in the background.
+Both compilation examples run during the image build. The default `OPENFOAM_VERSION`, `TORCH_VERSION`, and `LIBTORCH_SHA256` are build arguments. When selecting another LibTorch version, provide its archive checksum too. Other release combinations require their own compatibility tests.
 
-### Enroot image
+To convert a locally built Docker image into Apptainer:
 
-Using enroot is very similar to working with Apptainer. The main difference is that we have to bind the *test* directory manually. The command:
-```
-# assuming to be at the top-level of this repository
-enroot start -m "$PWD/test":"/home/$USER" of2406-py2.5.0-cpu bash
-```
-binds the *test* folder on the host to */home/$USER* inside the container and starts a new shell. Once the shell is open, compiling and running the tests works as described before.
-
-## Get in touch
-
-If you would like to suggest changes or improvements regarding the
-
-- build process,
-- pre-installed packages,
-- examples,
-- documentation,
-- ...
-
-please use the [issue tracker](https://github.com/AndreWeiner/of_pytorch_docker/issues).
-
-## Miscellaneous
-
-### Issue with Sourceforge
-
-Building the Docker image sometimes fails with the error message:
-
->E: Failed to fetch https://nav.dl.sourceforge.net/project/openfoam/repos/deb/dists/focal/main/pool/2012_1/binary-amd64/openfoam2012_1-2_amd64.deb  
->Could not connect to nav.dl.sourceforge.net:443 (5.154.224.27), connection timed out
->E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
-
-The OpenFOAM Debian package is hosted on Sourceforge, and sometimes their servers are not available. Usually waiting a couple of minutes before rebuilding the image helps to solve this issue.
-
-### Older versions of the Dockerfile
-
-There are two more Dockerfiles which were used to build previous versions of the Docker image. They remain part of the repository since they might be helpful to some users.
-
-- *Dockerfile.abi_source*: OpenFOAM is compiled from scratch; only some third-party packages are installed and, hence, some applications are missing
-- *Dockerfile.no_abi*: OpenFOAM is compiled from scratch with modified compiler flags to be compatible with *libtorch* versions prior to version 1.3
-
-By default, the OpenFOAM library will be compiled running two jobs in parallel. If you prefer to use more jobs, set the *NP* build argument, e.g.:
-```
-docker build --build-args NP=8 -t user_name/of_pytorch:of1912-py1.5-cpu -f Dockerfile.abi .
-```
-I also recommend to save the Docker output in a log-file:
-```
-docker build --build-args NP=8 -t user_name/of_pytorch:of1912-py1.5-cpu -f Dockerfile.abi . &> log.docker
+```bash
+apptainer build of2606-py2.14.1-cpu.sif docker-daemon://of_pytorch:of2606-py2.14.1-cpu
 ```
 
-### ABI
+The convenience scripts `create_openfoam_container.sh` and `start_openfoam.sh` use the locally built Docker image `of_pytorch:of2606-py2.14.1-cpu`. Pass a different Docker image name as the first argument to `create_openfoam_container.sh` if desired. The GHCR artifact above is a SIF image and cannot be used with `docker run`.
 
-Since version 1.3 of PyTorch, there is a version of libtorch compiled with ABI enabled ([read more](https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html)). The only change in prior versions compared to a regular compilation is the additional flag
+The files `Dockerfile.no_abi` and `Dockerfile.abi_source` document historical build approaches. They retain their older releases and are not current supported recipes.
+
+## Compilation and runtime checks
+
+`test/run-tests.sh` copies the examples into a temporary directory, builds them, runs them, and removes the temporary build artifacts. It prints the active OpenFOAM version/build settings and LibTorch version. The `tensorCreation` example links OpenFOAM as well as LibTorch, so it exercises the combination rather than only standalone LibTorch compilation.
+
+- **tensorCreation** uses `wmake`, initializes OpenFOAM's argument handling, compares the autograd derivative of sine with cosine, checks tensor values, and checks a save/load round trip.
+- **simpleMLP** uses CMake and LibTorch's compiler flags, runs a deterministic forward pass, and checks the output shape and finite values.
+
+The build fails if compilation or any of these checks fails. A successful run verifies these examples; it does not establish compatibility for every downstream solver, model, CUDA configuration, or MPI application.
+
+To run against an existing installation:
+
+```bash
+source /usr/lib/openfoam/openfoam2606/etc/bashrc
+export TORCH_LIBRARIES=/path/to/libtorch
+./test/run-tests.sh
 ```
--D_GLIBCXX_USE_CXX11_ABI=0
-```
-when compiling OpenFOAM. The flag is related to backwards compatibility for standards older than C++11 ([read more](https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html)).
 
-### Libtorch
-
-The PyTorch library files are located in */opt/libtorch*. The environment variable **TORCH_LIBRARIES** can be used to indicate the location of certain header and library files to the compiler and linker. To compile PyTorch C++ code using *wmake*, add
-
-```
-EXE_INC = \
-    -I$(TORCH_LIBRARIES)/include \
-    -I$(TORCH_LIBRARIES)/include/torch/csrc/api/include \
-```
-to the include paths, and
-```
-EXE_LIBS = \
-    -Wl,-rpath,$(TORCH_LIBRARIES)/lib $(TORCH_LIBRARIES)/lib/libtorch.so $(TORCH_LIBRARIES)/lib/libc10.so \
-    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libtorch_cpu.so \
-    -Wl,--as-needed $(TORCH_LIBRARIES)/lib/libc10.so \
-    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libtorch.so
-```
-to the library paths.
-
-
-
+Use `BUILD_JOBS=1` if compilation exceeds available memory. The default is two CMake compilation jobs; the small wmake example contains one source file.
